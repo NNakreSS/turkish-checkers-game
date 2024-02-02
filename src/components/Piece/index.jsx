@@ -3,20 +3,35 @@ import { DragPreviewImage, useDrag } from "react-dnd";
 import dama_white from "../../assets/dama_white.png";
 import dama_black from "../../assets/dama_black.png";
 // utilites
-import { isPieceCanMove, isPlacePieceOnCoord } from "../../utilities/utilitie";
+import {
+  checkForcePiece,
+  isPieceCanMove,
+  isPlacePieceOnCoord,
+} from "../../utilities/utilitie";
 // redux
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   checkerAdapterSelector,
   checkersSelector,
+  setForcedPiece,
 } from "../../redux/slices/checkersSlice";
 
 const Piece = ({ boardCoord }) => {
+  const dispatch = useDispatch();
   const pieces = useSelector(checkerAdapterSelector.selectAll);
   const piece = isPlacePieceOnCoord(boardCoord, pieces);
-  const { forcedPiece } = useSelector(checkersSelector);
+  const { forcedPieces } = useSelector(checkersSelector);
 
-  const isCanDrag = (selectedPiece) => isPieceCanMove(pieces, selectedPiece);
+  const isCanDrag = (selectedPiece) => {
+    const forcedPieces = checkForcePiece(selectedPiece.type, pieces);
+    if (forcedPieces.length > 0) {
+      dispatch(setForcedPiece(forcedPieces));
+      if (!forcedPieces.includes(selectedPiece.id)) {
+        console.info("Bir taşı yemek zorundasın");
+        return false;
+      } else return true;
+    } else return isPieceCanMove(pieces, selectedPiece);
+  };
 
   const [{ opacity }, dragRef, dragPreview] = useDrag(
     () => ({
@@ -42,7 +57,7 @@ const Piece = ({ boardCoord }) => {
           src={piese_img}
           className="w-16 h-16 piece z-10"
         />
-        {forcedPiece == piece.id ? (
+        {forcedPieces.includes(piece.id) ? (
           <div className="absolute h-[70px] w-[70px] bg-lime-400  select-none rounded-full"></div>
         ) : (
           piece.king && (

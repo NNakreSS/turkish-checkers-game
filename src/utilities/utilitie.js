@@ -53,7 +53,7 @@ export const getAcceptRottaionArray = ({ type, coord }) => {
   return rotationArray;
 };
 
-///// game contoller
+//// game contoller
 export const checkCanDrop = ({ coord, squareCoord, type, pieces }) => {
   const rotationArray = getAcceptRottaionArray({ type, coord });
   // Kontrol edilecek taş türüne göre düşman ve kendi taşlarını seç
@@ -74,16 +74,23 @@ export const checkCanDrop = ({ coord, squareCoord, type, pieces }) => {
     const closestEnemy = enemyPieces.find((piece) => piece.coord === rotation);
     if (closestEnemy) {
       const [eCol, eRow] = rotation.split("/").map(Number);
-      const col = Number(rotation.split("/")[0]);
+
+      const col = Number(coord.split("/")[0]);
+
       const forwardType = type == "white" ? +1 : -1;
       const newRotation =
         eCol === col
           ? `${eCol}/${eRow + forwardType}`
           : `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`;
+
       const isNotFreeBehindEnemy = enemyPieces.some(
         (piece) => piece.coord === newRotation
       );
-      if (!isNotFreeBehindEnemy) {
+      const isNotFreeBehindOwned = ownPieces.some(
+        (piece) => piece.coord === newRotation
+      );
+
+      if (!isNotFreeBehindEnemy && !isNotFreeBehindOwned) {
         closestEnemyCoords.push(newRotation);
       }
     }
@@ -92,25 +99,21 @@ export const checkCanDrop = ({ coord, squareCoord, type, pieces }) => {
   if (closestEnemyCoords.length > 0) {
     return closestEnemyCoords.includes(squareCoord);
   } else {
-    return acceptableRotations.includes(squareCoord);
+    // gidilebilir alanlardan herhangi biri test edilen kareye aitse ve o kare üzerinde rakip taşı yoksa
+    return acceptableRotations.some(
+      (square) =>
+        square == squareCoord &&
+        !enemyPieces.some((piece) => piece.coord === squareCoord)
+    );
   }
 };
 
 ////
 
-export const isPieceCanMove = (pieces, piece) => {
-  if (!piece.king) {
-    const forwardType = piece.type == "white" ? +1 : -1;
-    const own_pieces =
-      piece.type == "white"
-        ? pieces.filter((piece) => piece.type === "white")
-        : pieces.filter((piece) => piece.type === "black");
-
-    const [col, row] = piece.coord.split("/").map(Number);
-    const right = col < 8 ? `${col + 1}/${row}` : null;
-    const left = col > 1 ? `${col - 1}/${row}` : null;
-    const forward = `${col}/${row + forwardType}`;
-    const rotationArray = [forward, left, right].filter((item) => item);
+export const isPieceCanMove = (pieces, { king, type, coord }) => {
+  if (!king) {
+    const own_pieces = pieces.filter((piece) => piece.type === type);
+    const rotationArray = getAcceptRottaionArray({ type, coord });
     // Check if the square is empty
     const acceptableRotations = rotationArray.some((rotation) =>
       own_pieces.every((piece) => piece.coord !== rotation)
@@ -123,18 +126,48 @@ export const isPieceCanMove = (pieces, piece) => {
 
 export const checkForcePiece = (type, pieces) => {
   const ownPieces = pieces.filter((piece) => piece.type == type);
-  const enemyPiece = pieces.filter((piece) => piece.type != type);
-
-  ownPieces.forEach((piece) => {
-    if (!piece.king) {
-      // Check if the square is empty
-      const acceptableRotations = rotationArray.filter((rotation) =>
-        enemyPiece.every((ePiece) => ePiece.coord == rotation)
+  const enemyPieces = pieces.filter((piece) => piece.type != type);
+  const forcedPieces = [];
+  for (const { king, type, coord, id } of ownPieces) {
+    if (!king) {
+      const rotationArray = getAcceptRottaionArray({ type, coord });
+      const closesetEnemys = rotationArray.filter((rotation) =>
+        enemyPieces.some((ePiece) => ePiece.coord == rotation)
       );
 
-      if (acceptableRotations.length > 0) {
-        acceptableRotations.forEach((ePiece) => {});
+      if (closesetEnemys.length > 0) {
+        const col = Number(coord.split("/")[0]);
+        for (const ePiece of closesetEnemys) {
+          const forwardType = type == "white" ? +1 : -1;
+          const [eCol, eRow] = ePiece.split("/").map(Number);
+
+          const rowRotation =
+            eRow + forwardType <= 8 &&
+            eRow + forwardType >= 1 &&
+            `${eCol}/${eRow + forwardType}`;
+
+          const colRotation =
+            eCol + 1 <= 8 &&
+            eCol - 1 >= 1 &&
+            `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`;
+
+          const newRotation = eCol === col ? rowRotation : colRotation;
+          console.log(newRotation);
+          if (newRotation) {
+            const isNotFreeBehindEnemy = enemyPieces.some(
+              (piece) => piece.coord === newRotation
+            );
+            const isNotFreeBehindOwned = ownPieces.some(
+              (piece) => piece.coord === newRotation
+            );
+
+            if (!isNotFreeBehindOwned && !isNotFreeBehindEnemy) {
+              forcedPieces.push(id);
+            }
+          }
+        }
       }
     }
-  });
+  }
+  return forcedPieces;
 };

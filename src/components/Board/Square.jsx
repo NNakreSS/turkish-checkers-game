@@ -7,10 +7,11 @@ import { useDrop } from "react-dnd";
 import { useDispatch, useSelector } from "react-redux";
 import {
   checkerAdapterSelector,
+  setForcedPiece,
   updatePiece,
 } from "../../redux/slices/checkersSlice";
 // utilities
-import { checkCanDrop } from "../../utilities/utilitie";
+import { checkCanDrop, checkForcePiece } from "../../utilities/utilitie";
 
 const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
   const dispatch = useDispatch();
@@ -37,8 +38,10 @@ const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
     () => ({
       accept: "piece",
       canDrop: (piece) => canDropSquare(piece),
-      drop: ({ id }) =>
-        dispatch(updatePiece({ id, changes: { coord: squareCoord } })),
+      drop: ({ id, type }) => {
+        dispatch(updatePiece({ id, changes: { coord: squareCoord } }));
+        dispatch(setForcedPiece([]));
+      },
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
         canDrop: !!monitor.canDrop(),
@@ -52,8 +55,11 @@ const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
       ref={drop}
       className={classNames(
         "border h-20 w-20 flex justify-center items-center text-2xl font-bold text-slate-400/50 select-none relative",
-        { "bg-slate-300": (col_index + row_index) % 2 === 0 }, // Light color if the sum of row and column numbers is even
-        { "bg-slate-500": (col_index + row_index) % 2 !== 0 } // Dark color if the sum of row and column numbers is odd
+        {
+          "bg-slate-300": (col_index + row_index) % 2 === 0, // Light color if the sum of row and column numbers is even
+          "bg-slate-500": (col_index + row_index) % 2 !== 0,
+          "!bg-green-300": canDrop,
+        } // Dark color if the sum of row and column numbers is odd
       )}
     >
       <Piece boardCoord={squareCoord} />
@@ -63,7 +69,7 @@ const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
           className={classNames(
             "h-10 w-10  rounded-full absolute",
             {
-              "bg-green-300": canDrop,
+              "bg-white": canDrop,
             },
             {
               "bg-red-300": !canDrop,
