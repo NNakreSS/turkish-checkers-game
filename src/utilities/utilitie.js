@@ -152,7 +152,6 @@ export const checkForcePiece = (type, pieces) => {
             `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`;
 
           const newRotation = eCol === col ? rowRotation : colRotation;
-          console.log(newRotation);
           if (newRotation) {
             const isNotFreeBehindEnemy = enemyPieces.some(
               (piece) => piece.coord === newRotation
@@ -170,4 +169,28 @@ export const checkForcePiece = (type, pieces) => {
     }
   }
   return forcedPieces;
+};
+
+// üzerinden atlanan rakip taşın tespiti
+
+export const checkRemovePiece = (coord, squareCoord, pieces) => {
+  const [cCol, cRow] = coord.split("/").map(Number);
+  const [nCol, nRow] = squareCoord.split("/").map(Number);
+  let spacedSquareCoord = null;
+  if (cCol == nCol) {
+    const diff = cRow - nRow;
+    const nextRow = cRow + (diff < 0 ? +1 : -1);
+    if (Math.abs(diff) > 1) {
+      spacedSquareCoord = `${cCol}/${nextRow}`;
+    }
+  } else {
+    const diff = cCol - nCol;
+    const nextCol = cCol + (diff < 0 ? +1 : -1);
+    if (Math.abs(diff) > 1) {
+      spacedSquareCoord = `${nextCol}/${cRow}`;
+    }
+  }
+  console.log(spacedSquareCoord);
+  const removePiece = pieces.find((piece) => piece.coord === spacedSquareCoord);
+  return removePiece?.id;
 };

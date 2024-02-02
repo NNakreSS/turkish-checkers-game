@@ -7,11 +7,12 @@ import { useDrop } from "react-dnd";
 import { useDispatch, useSelector } from "react-redux";
 import {
   checkerAdapterSelector,
+  removePiece,
   setForcedPiece,
   updatePiece,
 } from "../../redux/slices/checkersSlice";
 // utilities
-import { checkCanDrop, checkForcePiece } from "../../utilities/utilitie";
+import { checkCanDrop, checkRemovePiece } from "../../utilities/utilitie";
 
 const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
   const dispatch = useDispatch();
@@ -38,7 +39,12 @@ const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
     () => ({
       accept: "piece",
       canDrop: (piece) => canDropSquare(piece),
-      drop: ({ id, type }) => {
+      drop: ({ id, coord }) => {
+        const removeId = checkRemovePiece(coord, squareCoord, pieces);
+        console.log(removeId);
+        if (removeId) {
+          dispatch(removePiece(removeId));
+        }
         dispatch(updatePiece({ id, changes: { coord: squareCoord } }));
         dispatch(setForcedPiece([]));
       },
