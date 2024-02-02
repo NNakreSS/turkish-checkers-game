@@ -34,5 +34,11 @@ export const createPieces = () => {
     type: "white",
     king: true,
   }));
-  return { black, white };
+  return [...black, ...white];
+};
+
+// check coord on piece ?
+export const isPlacePieceOnCoord = (coord, pieces) => {
+  const onBoardPieces = pieces.filter((piece) => piece.coord === coord)[0];
+  return onBoardPieces;
 };

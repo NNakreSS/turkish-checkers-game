@@ -1,6 +1,6 @@
 import Square from "./Square";
 
-const BoardMain = ({ rows, cols, pieces }) => {
+const BoardMain = ({ rows, cols }) => {
   return (
     <div className="m-auto bg-sky-300 grid grid-cols-8 grid-rows-8 w-[calc(8*5rem)]">
       {rows.map((row, j) =>
@@ -11,7 +11,6 @@ const BoardMain = ({ rows, cols, pieces }) => {
             col={col}
             col_index={i}
             row_index={j}
-            pieces={pieces}
           />
         ))
       )}
