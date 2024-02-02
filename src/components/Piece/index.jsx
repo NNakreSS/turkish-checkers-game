@@ -14,30 +14,29 @@ const Piece = ({ boardCoord, pieces }) => {
   const piece = isPlacePieceOnCoord(boardCoord, pieces);
 
   if (piece) {
-    const [{ opacity }, dragRef, dragPreview] = useDrag(
+    const [{ opacity, isDragging }, dragRef, dragPreview] = useDrag(
       () => ({
         type: "piece",
         item: { id: piece.id },
         collect: (monitor) => ({
-          opacity: monitor.isDragging() ? 0.5 : 1,
+          opacity: monitor.isDragging() ? 0.3 : 1,
+          isDragging: !!monitor.isDragging,
         }),
       }),
       []
     );
 
+    const piese_img = piece.type == "white" ? dama_white : dama_black;
+
     return (
       <>
-        <DragPreviewImage
-          connect={dragPreview}
-          src={piece.type == "white" ? dama_white : dama_black}
-        />
+        <DragPreviewImage connect={dragPreview} src={piese_img} />
         <img
-          draggable
           ref={dragRef}
           style={{ opacity }}
           data-piece={JSON.stringify(piece)}
-          src={piece.type == "white" ? dama_white : dama_black}
-          className={classNames("w-16 h-16 piece cursor-pointer", {
+          src={piese_img}
+          className={classNames("w-16 h-16 piece", {
             "border-white dama_black": piece.type == "black",
             "border-black dama_white": piece.type == "white",
           })}

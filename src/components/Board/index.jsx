@@ -1,7 +1,5 @@
-import classNames from "classnames";
-// dnd
-import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { DndProvider } from "react-dnd";
 // utilites
 import { createGameBoard, createPieces } from "../../utilities/utilitie";
 // components
