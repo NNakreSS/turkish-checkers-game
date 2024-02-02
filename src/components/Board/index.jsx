@@ -22,7 +22,7 @@ const Board = () => {
   useEffect(() => {
     const pieces = createPieces();
     dispatch(addPieces(pieces));
-  }, []);
+  }, [dispatch]);
 
   return (
     <div

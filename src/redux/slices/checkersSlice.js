@@ -6,6 +6,7 @@ const checkersEntityAdapter = createEntityAdapter();
 const initialState = () =>
   checkersEntityAdapter.getInitialState({
     Squares: createGameBoard(),
+    forcedPiece: null,
   });
 
 const reducers = {
@@ -13,6 +14,9 @@ const reducers = {
   removePiece: checkersEntityAdapter.removeOne,
   updatePiece: checkersEntityAdapter.updateOne,
   updatePieces: checkersEntityAdapter.updateMany,
+  setForcedPiece(state, { payload }) {
+    state.forcedPiece = payload;
+  },
 };
 
 const checkersSlice = createSlice({
@@ -21,12 +25,17 @@ const checkersSlice = createSlice({
   reducers,
 });
 
-export const checkerAdepterSelector = checkersEntityAdapter.getSelectors(
+export const checkerAdapterSelector = checkersEntityAdapter.getSelectors(
   (state) => state.checkers
 );
 
 export const checkersSelector = (state) => state.checkers;
 
 export default checkersSlice.reducer;
-export const { addPieces, removePiece, updatePiece, updatePieces } =
-  checkersSlice.actions;
+export const {
+  addPieces,
+  removePiece,
+  updatePiece,
+  updatePieces,
+  setForcedPiece,
+} = checkersSlice.actions;

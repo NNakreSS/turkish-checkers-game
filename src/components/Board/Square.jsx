@@ -6,53 +6,58 @@ import { useDrop } from "react-dnd";
 // redux
 import { useDispatch, useSelector } from "react-redux";
 import {
-  checkerAdepterSelector,
+  checkerAdapterSelector,
   updatePiece,
 } from "../../redux/slices/checkersSlice";
+// utilities
+import { checkCanDrop } from "../../utilities/utilitie";
 
-const Square = ({ col, row, col_index, row_index }) => {
+const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
   const dispatch = useDispatch();
-  const SquareCoord = `${col}/${row}`;
+  const pieces = useSelector(checkerAdapterSelector.selectAll);
+  const squareCoord = `${sCol}/${sRow}`;
 
-  const ConDropPieceSquare = ({ id, coord, type, king }) => {
-    const [col, row] = coord.split("/").map((item) => Number(item));
-    const accesSquareForPiece = [];
-    console.log(col, row);
-    if (type == "white") {
-      accesSquareForPiece.push(`${col}/${row + 1}`);
-      accesSquareForPiece.push(`${col + 1}/${row}`);
-      accesSquareForPiece.push(`${col - 1}/${row}`);
+  // Check if the square is suitable for the piece
+  const canDropSquare = ({ coord, type, king }) => {
+    if (!king) {
+      return checkCanDrop({
+        coord,
+        squareCoord,
+        type,
+        pieces,
+      });
+    } else {
+      // TODO: Implement possible moves for king piece
+      return false;
     }
-    return accesSquareForPiece.find((item) => item == SquareCoord);
   };
 
+  // Drag and drop event handlers
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: "piece",
-      canDrop: (piece) => ConDropPieceSquare(piece),
+      canDrop: (piece) => canDropSquare(piece),
       drop: ({ id }) =>
-        dispatch(updatePiece({ id, changes: { coord: SquareCoord } })),
+        dispatch(updatePiece({ id, changes: { coord: squareCoord } })),
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
         canDrop: !!monitor.canDrop(),
       }),
     }),
-    []
+    [pieces]
   );
 
   return (
-    <div // rows and cols boxs
+    <div // square container
       ref={drop}
-      // data-coord={SquareCoord}
       className={classNames(
         "border h-20 w-20 flex justify-center items-center text-2xl font-bold text-slate-400/50 select-none relative",
-        { "bg-slate-300": (col_index + row_index) % 2 == 0 }, // satır ve stün numaralarının toplamı çift sayı ise açık renk
-        { "bg-slate-500": (col_index + row_index) % 2 != 0 } // satır ve stün numaralarının toplamı tej sayı ise koyu renk
-        // { "bg-green-600": canDrop } // satır ve stün numaralarının toplamı tej sayı ise koyu renk
+        { "bg-slate-300": (col_index + row_index) % 2 === 0 }, // Light color if the sum of row and column numbers is even
+        { "bg-slate-500": (col_index + row_index) % 2 !== 0 } // Dark color if the sum of row and column numbers is odd
       )}
     >
-      <Piece boardCoord={SquareCoord} />
-      {/* preview for drag box area */}
+      <Piece boardCoord={squareCoord} />
+      {/* Preview for drop area */}
       {isOver ? (
         <div
           className={classNames(
@@ -70,7 +75,7 @@ const Square = ({ col, row, col_index, row_index }) => {
           <div className="h-10 w-10  rounded-full absolute bg-gray-600"></div>
         )
       )}
-      {/* end preview */}
+      {/* End preview */}
     </div>
   );
 };
