@@ -20,17 +20,22 @@ const Piece = ({ boardCoord }) => {
   const dispatch = useDispatch();
   const pieces = useSelector(checkerAdapterSelector.selectAll);
   const piece = isPlacePieceOnCoord(boardCoord, pieces);
-  const { forcedPieces } = useSelector(checkersSelector);
+  const { forcedPieces, turnColor } = useSelector(checkersSelector);
 
   const isCanDrag = (selectedPiece) => {
-    const forcedPieces = checkForcePiece(selectedPiece.type, pieces);
-    if (forcedPieces.length > 0) {
-      dispatch(setForcedPiece(forcedPieces));
-      if (!forcedPieces.includes(selectedPiece.id)) {
-        console.info("Bir taşı yemek zorundasın");
-        return false;
-      } else return true;
-    } else return isPieceCanMove(pieces, selectedPiece);
+    if (turnColor == selectedPiece.type) {
+      const forcedPieces = checkForcePiece(selectedPiece.type, pieces);
+      console.log(forcedPieces);
+      if (forcedPieces.length > 0) {
+        dispatch(setForcedPiece(forcedPieces));
+        if (!forcedPieces.includes(selectedPiece.id)) {
+          console.info("Bir taşı yemek zorundasın");
+          return false;
+        } else return true;
+      } else return isPieceCanMove(pieces, selectedPiece);
+    } else {
+      alert("rakibin sırası");
+    }
   };
 
   const [{ opacity }, dragRef, dragPreview] = useDrag(

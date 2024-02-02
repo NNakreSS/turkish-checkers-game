@@ -7,6 +7,7 @@ const initialState = () =>
   checkersEntityAdapter.getInitialState({
     Squares: createGameBoard(),
     forcedPieces: [],
+    turnColor: "white",
   });
 
 const reducers = {
@@ -16,6 +17,9 @@ const reducers = {
   updatePieces: checkersEntityAdapter.updateMany,
   setForcedPiece(state, { payload }) {
     state.forcedPieces = payload;
+  },
+  toggleTurnColor(state) {
+    state.turnColor = state.turnColor == "white" ? "black" : "white";
   },
 };
 
@@ -38,4 +42,5 @@ export const {
   updatePiece,
   updatePieces,
   setForcedPiece,
+  toggleTurnColor,
 } = checkersSlice.actions;

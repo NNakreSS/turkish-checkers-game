@@ -127,53 +127,61 @@ export const isPieceCanMove = (pieces, { king, type, coord }) => {
 export const checkForcePiece = (type, pieces) => {
   const ownPieces = pieces.filter((piece) => piece.type == type);
   const enemyPieces = pieces.filter((piece) => piece.type != type);
-  const forcedPieces = [];
+  let forcedPieces = [];
   for (const { king, type, coord, id } of ownPieces) {
     if (!king) {
-      const rotationArray = getAcceptRottaionArray({ type, coord });
-      const closesetEnemys = rotationArray.filter((rotation) =>
-        enemyPieces.some((ePiece) => ePiece.coord == rotation)
+      forcedPieces.push(
+        checkForce({ type, coord, id }, enemyPieces, ownPieces)
       );
+    }
+  }
+  forcedPieces = forcedPieces.filter((item) => item);
+  return forcedPieces;
+};
 
-      if (closesetEnemys.length > 0) {
-        const col = Number(coord.split("/")[0]);
-        for (const ePiece of closesetEnemys) {
-          const forwardType = type == "white" ? +1 : -1;
-          const [eCol, eRow] = ePiece.split("/").map(Number);
+///
+export const checkForce = ({ type, coord, id }, enemyPieces, ownPieces) => {
+  const rotationArray = getAcceptRottaionArray({ type, coord });
+  const closesetEnemys = rotationArray.filter((rotation) =>
+    enemyPieces.some((ePiece) => ePiece.coord == rotation)
+  );
 
-          const rowRotation =
-            eRow + forwardType <= 8 &&
-            eRow + forwardType >= 1 &&
-            `${eCol}/${eRow + forwardType}`;
+  if (closesetEnemys.length > 0) {
+    const col = Number(coord.split("/")[0]);
+    for (const ePiece of closesetEnemys) {
+      const forwardType = type == "white" ? +1 : -1;
+      const [eCol, eRow] = ePiece.split("/").map(Number);
 
-          const colRotation =
-            eCol + 1 <= 8 &&
-            eCol - 1 >= 1 &&
-            `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`;
+      const rowRotation =
+        eRow + forwardType <= 8 &&
+        eRow + forwardType >= 1 &&
+        `${eCol}/${eRow + forwardType}`;
 
-          const newRotation = eCol === col ? rowRotation : colRotation;
-          if (newRotation) {
-            const isNotFreeBehindEnemy = enemyPieces.some(
-              (piece) => piece.coord === newRotation
-            );
-            const isNotFreeBehindOwned = ownPieces.some(
-              (piece) => piece.coord === newRotation
-            );
+      const colRotation =
+        eCol + 1 <= 8 &&
+        eCol - 1 >= 1 &&
+        `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`;
 
-            if (!isNotFreeBehindOwned && !isNotFreeBehindEnemy) {
-              forcedPieces.push(id);
-            }
-          }
+      const newRotation = eCol === col ? rowRotation : colRotation;
+      if (newRotation) {
+        const isNotFreeBehindEnemy = enemyPieces.some(
+          (piece) => piece.coord === newRotation
+        );
+        const isNotFreeBehindOwned = ownPieces.some(
+          (piece) => piece.coord === newRotation
+        );
+
+        if (!isNotFreeBehindOwned && !isNotFreeBehindEnemy) {
+          return id;
         }
       }
     }
   }
-  return forcedPieces;
 };
 
 // üzerinden atlanan rakip taşın tespiti
 
-export const checkRemovePiece = (coord, squareCoord, pieces) => {
+export const checkRemovePiece = ({ coord, type, id }, squareCoord, pieces) => {
   const [cCol, cRow] = coord.split("/").map(Number);
   const [nCol, nRow] = squareCoord.split("/").map(Number);
   let spacedSquareCoord = null;
@@ -190,7 +198,15 @@ export const checkRemovePiece = (coord, squareCoord, pieces) => {
       spacedSquareCoord = `${nextCol}/${cRow}`;
     }
   }
-  console.log(spacedSquareCoord);
   const removePiece = pieces.find((piece) => piece.coord === spacedSquareCoord);
-  return removePiece?.id;
+  const enemyPieces = pieces.filter((piece) => piece.type !== type);
+  const ownPieces = pieces.filter((piece) => piece.type == type);
+  const forcPieces = checkForce(
+    { coord: squareCoord, type, id },
+    enemyPieces,
+    ownPieces
+  );
+  console.log("forcPieces : ", forcPieces);
+  const notTurn = forcPieces && true;
+  return { id: removePiece?.id, notTurn };
 };

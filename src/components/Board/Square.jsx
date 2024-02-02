@@ -9,6 +9,7 @@ import {
   checkerAdapterSelector,
   removePiece,
   setForcedPiece,
+  toggleTurnColor,
   updatePiece,
 } from "../../redux/slices/checkersSlice";
 // utilities
@@ -39,12 +40,17 @@ const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
     () => ({
       accept: "piece",
       canDrop: (piece) => canDropSquare(piece),
-      drop: ({ id, coord }) => {
-        const removeId = checkRemovePiece(coord, squareCoord, pieces);
-        console.log(removeId);
+      drop: ({ id, coord, type }) => {
+        const { id: removeId, notTurn } = checkRemovePiece(
+          { type, id, coord },
+          squareCoord,
+          pieces
+        );
         if (removeId) {
           dispatch(removePiece(removeId));
-        }
+          console.log("notTurne : " , notTurn)
+          if (!notTurn) dispatch(toggleTurnColor());
+        } else dispatch(toggleTurnColor());
         dispatch(updatePiece({ id, changes: { coord: squareCoord } }));
         dispatch(setForcedPiece([]));
       },
