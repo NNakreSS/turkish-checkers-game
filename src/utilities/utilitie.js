@@ -183,9 +183,9 @@ export const pieceMoveSquares = (selectedPiece) => {
     squares,
     selectedPiece.type
   );
+  const [col, row] = selectedPiece.square.split("/").map(Number); // hamle yapılmak üzere seçilen taşın colonu
+  const rotations = getAcceptRottaionArray(selectedPiece, ownPiecesSquare);
   if (!selectedPiece.king) {
-    const col = Number(selectedPiece.square.split("/")[0]); // hamle yapılmak üzere seçilen taşın colonu
-    const rotations = getAcceptRottaionArray(selectedPiece, ownPiecesSquare);
     for (const rotation of rotations) {
       // hamle yapabileceğim karelerin tamamını tek tek dolaş
       const squarePiece = squares[rotation]?.piece; // hamle mesafemdeki karenin içerisindeki taş
@@ -209,6 +209,7 @@ export const pieceMoveSquares = (selectedPiece) => {
         }
       }
     }
+  } else {
   }
   const accesSquares =
     movedEnemySquares.length > 0 ? movedEnemySquares : movedSquares; // düşman taşını yiyebileceğin bir hamle varsa sadece o karelere hamle yapabilirsin taşı yemek zorundasın

@@ -24,9 +24,11 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
 
   const [col, row] = squareCoord.split("/").map(Number); // bu karenin colon ve stün değeri
   const damaSquare = row === 8 || row === 1; // eğer bu kare 1. yada 8. satırda yer alıyorsa dama karesidir , bu karaye gelen taş dama taşı olur
+
   // seçilen taş bu kareye hamle yapabilir mi
   const canDropSquare = (selectedPiece) => {
     const pieceMovedSquares = pieceMoveSquares(selectedPiece); // taşın hamle yapabileceği kareler
+    console.table(pieceMovedSquares)
     return pieceMovedSquares.includes(squareCoord); // şuanki kare o taşın hamle yapabileceği karelerin içerisinde mi yer alıyor
   };
 

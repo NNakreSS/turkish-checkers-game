@@ -6,9 +6,7 @@ import dama_black from "../../assets/dama_black.png";
 import { pieceMoveSquares } from "../../utilities/utilitie";
 // redux
 import { useSelector } from "react-redux";
-import {
-  checkersSelector,
-} from "../../redux/slices/checkersSlice";
+import { checkersSelector } from "../../redux/slices/checkersSlice";
 
 const Piece = ({ piece }) => {
   const { forcedPieces, turnColor } = useSelector(checkersSelector);
@@ -25,7 +23,10 @@ const Piece = ({ piece }) => {
           console.info("Bir taşı yemek zorundasın");
           return false; // oyması zorunlu bir taş var ve seçilen bu taş değilse izin verme
         }
-      } else true; // oyması zorunlu bir taş yoksa sürüklenebilir
+      } else {
+        // oyması zorunlu bir taş yoksa sürüklenebilir
+        return true;
+      }
       // sıra oynatılmaya çalışılan taşta değilse uyarı ver
     } else {
       console.warn("sıra rakipte");
@@ -45,7 +46,7 @@ const Piece = ({ piece }) => {
         opacity: monitor.isDragging() ? 0.3 : 1,
       }),
     }),
-    [piece,forcedPieces , isCanDrag]
+    [piece, forcedPieces, isCanDrag]
   );
 
   const piese_img = piece.type == "white" ? dama_white : dama_black;
