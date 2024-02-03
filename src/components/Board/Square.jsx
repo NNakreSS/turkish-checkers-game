@@ -7,31 +7,85 @@ import { useDrop } from "react-dnd";
 import { useDispatch, useSelector } from "react-redux";
 import {
   checkerAdapterSelector,
-  removePiece,
   setForcedPiece,
   toggleTurnColor,
   updatePiece,
 } from "../../redux/slices/checkersSlice";
 // utilities
-import { checkCanDrop, checkRemovePiece } from "../../utilities/utilitie";
+import {
+  eatingRequirementPieceCheck,
+  pieceMoveSquares,
+  spacedSquares,
+} from "../../utilities/utilitie";
 
-const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
+const Square = ({ square: { id: squareCoord, piece } }) => {
   const dispatch = useDispatch();
-  const pieces = useSelector(checkerAdapterSelector.selectAll);
-  const squareCoord = `${sCol}/${sRow}`;
+  const squares = useSelector(checkerAdapterSelector.selectEntities);
 
-  // Check if the square is suitable for the piece
-  const canDropSquare = ({ coord, type, king }) => {
-    if (!king) {
-      return checkCanDrop({
-        coord,
-        squareCoord,
-        type,
-        pieces,
+  const [col, row] = squareCoord.split("/").map(Number); // bu karenin colon ve stün değeri
+  const damaSquare = row === 8 || row === 1; // eğer bu kare 1. yada 8. satırda yer alıyorsa dama karesidir , bu karaye gelen taş dama taşı olur
+  // seçilen taş bu kareye hamle yapabilir mi
+  const canDropSquare = (selectedPiece) => {
+    const pieceMovedSquares = pieceMoveSquares(selectedPiece); // taşın hamle yapabileceği kareler
+    return pieceMovedSquares.includes(squareCoord); // şuanki kare o taşın hamle yapabileceği karelerin içerisinde mi yer alıyor
+  };
+
+  const dropSquare = (droppedPiece) => {
+    const prevSquare = squares[droppedPiece.square]; // taşın hamle yapılmadan önceki bulunduğu kare
+    const spaceSquares = spacedSquares(droppedPiece, squareCoord);
+
+    dispatch(
+      // önceki karede bulunan taş değerini sil
+      updatePiece({
+        id: prevSquare.id,
+        changes: { piece: null },
+      })
+    );
+
+    const setKing = !droppedPiece.king && damaSquare ? true : droppedPiece.king;
+    dispatch(
+      // taşın bırakıldığı yeni kareyi bırakılan taş ile güncelle
+      updatePiece({
+        id: squareCoord,
+        changes: {
+          piece: { ...droppedPiece, square: squareCoord, king: setKing },
+        },
+      })
+    );
+
+    spaceSquares.forEach((spacedSquare) => {
+      dispatch(
+        // karede bulunan taş değerini sil
+        updatePiece({
+          id: spacedSquare,
+          changes: { piece: null },
+        })
+      );
+    });
+
+    // bu kareye gelinerek bir rakip taş yenildiyse , bu karaden devam hamlesi var mı onu kontrol et
+    if (spaceSquares.length > 0) {
+      // hamle sırası olan taşın devam hamlesi var mı kontrol et
+      const eatingRequiredPiece = eatingRequirementPieceCheck({
+        ...droppedPiece,
+        square: squareCoord,
+        king: setKing,
       });
+      /**
+       * son hamle yapan taraf için taş yiyebileceği bir devam hamlesi yoksa
+       * veya bu hamleyi yapabilecek taş son hamle yapılan taş ile aynı değil ilse sıra rakibe geçer
+       *  */
+      if (eatingRequiredPiece == droppedPiece.id) {
+        // oyuncu taraf için yeme hamlesi yapılabilir taş listesinde son hamle yapılan taş varsa devam et
+        dispatch(setForcedPiece([droppedPiece.id]));
+      } else {
+        // oyuncu taraf için yeme hamlesi yapılabilir taş listesinde son hamle yapılan taş yoksa sıra rakiptes
+        dispatch(setForcedPiece([]));
+        dispatch(toggleTurnColor());
+      }
     } else {
-      // TODO: Implement possible moves for king piece
-      return false;
+      dispatch(toggleTurnColor());
+      dispatch(setForcedPiece([]));
     }
   };
 
@@ -40,26 +94,13 @@ const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
     () => ({
       accept: "piece",
       canDrop: (piece) => canDropSquare(piece),
-      drop: ({ id, coord, type }) => {
-        const { id: removeId, notTurn } = checkRemovePiece(
-          { type, id, coord },
-          squareCoord,
-          pieces
-        );
-        if (removeId) {
-          dispatch(removePiece(removeId));
-          console.log("notTurne : " , notTurn)
-          if (!notTurn) dispatch(toggleTurnColor());
-        } else dispatch(toggleTurnColor());
-        dispatch(updatePiece({ id, changes: { coord: squareCoord } }));
-        dispatch(setForcedPiece([]));
-      },
+      drop: dropSquare,
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
         canDrop: !!monitor.canDrop(),
       }),
     }),
-    [pieces]
+    [squares]
   );
 
   return (
@@ -68,13 +109,13 @@ const Square = ({ col: sCol, row: sRow, col_index, row_index }) => {
       className={classNames(
         "border h-20 w-20 flex justify-center items-center text-2xl font-bold text-slate-400/50 select-none relative",
         {
-          "bg-slate-300": (col_index + row_index) % 2 === 0, // Light color if the sum of row and column numbers is even
-          "bg-slate-500": (col_index + row_index) % 2 !== 0,
+          "bg-slate-300": (col + row) % 2 === 0, // Light color if the sum of row and column numbers is even
+          "bg-slate-500": (col + row) % 2 !== 0,
           "!bg-green-300": canDrop,
         } // Dark color if the sum of row and column numbers is odd
       )}
     >
-      <Piece boardCoord={squareCoord} />
+      {piece ? <Piece piece={piece} /> : <span>{squareCoord}</span>}
       {/* Preview for drop area */}
       {isOver ? (
         <div

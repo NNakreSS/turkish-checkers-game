@@ -1,20 +1,14 @@
+import { useSelector } from "react-redux";
 import Square from "./Square";
-
-
-const BoardMain = ({ rows, cols }) => {
+import { checkerAdapterSelector } from "../../redux/slices/checkersSlice";
+const BoardMain = () => {
+  const squares = useSelector(checkerAdapterSelector.selectAll);
   return (
     <div className="m-auto bg-sky-300 grid grid-cols-8 grid-rows-8 w-[calc(8*5rem)]">
-      {rows.map((row, j) =>
-        cols.map((col, i) => (
-          <Square
-            key={col + "-" + row}
-            row={row}
-            col={col}
-            col_index={i}
-            row_index={j}
-          />
-        ))
-      )}
+      {squares.map((item, index) => (
+        // console.log(item, index)
+        <Square key={index} square={item} />
+      ))}
     </div>
   );
 };

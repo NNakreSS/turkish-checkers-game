@@ -1,11 +1,9 @@
 import { createSlice, createEntityAdapter } from "@reduxjs/toolkit";
-import { createGameBoard } from "../../utilities/utilitie";
 
 const checkersEntityAdapter = createEntityAdapter();
 
 const initialState = () =>
   checkersEntityAdapter.getInitialState({
-    Squares: createGameBoard(),
     forcedPieces: [],
     turnColor: "white",
   });
