@@ -14,6 +14,7 @@ import {
 // utilities
 import {
   eatingRequirementPieceCheck,
+  eatingRequirementPiecesCheck,
   pieceMoveSquares,
   spacedSquares,
 } from "../../utilities/utilitie";
@@ -26,13 +27,12 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
   const damaSquare = row === 8 || row === 1; // eğer bu kare 1. yada 8. satırda yer alıyorsa dama karesidir , bu karaye gelen taş dama taşı olur
 
   // seçilen taş bu kareye hamle yapabilir mi
-  const canDropSquare = (selectedPiece) => {
+  const canDropHandle = (selectedPiece) => {
     const pieceMovedSquares = pieceMoveSquares(selectedPiece); // taşın hamle yapabileceği kareler
-    console.table(pieceMovedSquares)
     return pieceMovedSquares.includes(squareCoord); // şuanki kare o taşın hamle yapabileceği karelerin içerisinde mi yer alıyor
   };
 
-  const dropSquare = (droppedPiece) => {
+  const dropHandle = (droppedPiece) => {
     const prevSquare = squares[droppedPiece.square]; // taşın hamle yapılmadan önceki bulunduğu kare
     const spaceSquares = spacedSquares(droppedPiece, squareCoord);
 
@@ -82,21 +82,25 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
         dispatch(setForcedPiece([droppedPiece.id]));
       } else {
         // oyuncu taraf için yeme hamlesi yapılabilir taş listesinde son hamle yapılan taş yoksa sıra rakiptes
-        dispatch(setForcedPiece([]));
-        dispatch(toggleTurnColor());
+        switchTurnColor();
       }
     } else {
-      dispatch(toggleTurnColor());
-      dispatch(setForcedPiece([]));
+      switchTurnColor();
     }
+  };
+
+  const switchTurnColor = () => {
+    dispatch(toggleTurnColor());
+    const eatingRequiredPieces = eatingRequirementPiecesCheck();
+    dispatch(setForcedPiece([...eatingRequiredPieces]));
   };
 
   // Drag and drop event handlers
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: "piece",
-      canDrop: (piece) => canDropSquare(piece),
-      drop: dropSquare,
+      canDrop: (piece) => canDropHandle(piece),
+      drop: dropHandle,
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
         canDrop: !!monitor.canDrop(),
@@ -117,7 +121,7 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
         } // Dark color if the sum of row and column numbers is odd
       )}
     >
-      {piece ? <Piece piece={piece} /> : <span>{squareCoord}</span>}
+      {piece ? <Piece piece={piece} /> : <span className="opacity-50">{squareCoord}</span>}
       {/* Preview for drop area */}
       {isOver ? (
         <div

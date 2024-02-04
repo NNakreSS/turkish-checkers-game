@@ -6,7 +6,6 @@ const BoardMain = () => {
   return (
     <div className="m-auto bg-sky-300 grid grid-cols-8 grid-rows-8 w-[calc(8*5rem)]">
       {squares.map((item, index) => (
-        // console.log(item, index)
         <Square key={index} square={item} />
       ))}
     </div>

@@ -2,8 +2,8 @@ import { DragPreviewImage, useDrag } from "react-dnd";
 // images
 import dama_white from "../../assets/dama_white.png";
 import dama_black from "../../assets/dama_black.png";
-// utilites
-import { pieceMoveSquares } from "../../utilities/utilitie";
+import dama_white_king from "../../assets/dama_white_king.png";
+import dama_black_king from "../../assets/dama_black_king.png";
 // redux
 import { useSelector } from "react-redux";
 import { checkersSelector } from "../../redux/slices/checkersSlice";
@@ -32,9 +32,6 @@ const Piece = ({ piece }) => {
       console.warn("sıra rakipte");
       return false; // sırası gelmeyen biri hamle yapmaya çalışırsa izin verme
     }
-
-    const moveSquares = pieceMoveSquares(selectedPiece);
-    return moveSquares.length > 0;
   };
 
   const [{ opacity }, dragRef, dragPreview] = useDrag(
@@ -49,7 +46,15 @@ const Piece = ({ piece }) => {
     [piece, forcedPieces, isCanDrag]
   );
 
-  const piese_img = piece.type == "white" ? dama_white : dama_black;
+  const piese_img =
+    piece.type == "white"
+      ? piece.king
+        ? dama_white_king
+        : dama_white
+      : piece.king
+      ? dama_black_king
+      : dama_black;
+
   return (
     <>
       <DragPreviewImage connect={dragPreview} src={piese_img} />
@@ -60,12 +65,8 @@ const Piece = ({ piece }) => {
         src={piese_img}
         className="w-16 h-16 piece z-10"
       />
-      {forcedPieces.includes(piece.id) ? (
-        <div className="absolute h-[70px] w-[70px] bg-lime-400  select-none rounded-full"></div>
-      ) : (
-        piece.king && (
-          <div className="absolute h-[75px] w-[75px] bg-yellow-500  select-none rounded-full"></div>
-        )
+      {forcedPieces.includes(piece.id) && (
+        <div className="absolute h-full w-full bg-sky-200 select-none "></div>
       )}
     </>
   );

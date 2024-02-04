@@ -35,323 +35,223 @@ export const createGameBoard = () => {
   return gameSquares;
 };
 
-// // create Pieces black and white
-// export const createPieces = () => {
-//   const createCoordBlack = (i) =>
-//     i <= 8 ? i + "/6" : (i % 8 == 0 ? 8 : i % 8) + "/7";
-//   const createCoordWhite = (i) =>
-//     i <= 8 ? i + "/2" : (i % 8 == 0 ? 8 : i % 8) + "/3";
-
-//   const black = new Array(16).fill().map((x, i) => ({
-//     id: nanoid(),
-//     coord: createCoordBlack(++i),
-//     type: "black",
-//     king: false,
-//   }));
-
-//   const white = new Array(16).fill().map((x, i) => ({
-//     id: nanoid(),
-//     coord: createCoordWhite(++i),
-//     type: "white",
-//     king: false,
-//   }));
-//   return [...black, ...white];
-// };
-
-// // check coord on piece ?
-// export const isPlacePieceOnCoord = (coord, pieces) => {
-//   const onBoardPieces = pieces.find((piece) => piece.coord === coord);
-//   return onBoardPieces;
-// };
-
-const isFreeSquare = (ownPieces, col, row) => {
-  const squareCoord = `${col}/${row}`;
-  const _hitOwnPiece = ownPieces.some(
+// hamle mesafesindeki karelerin hamle yapılmaya uygunluğunu kontrol et ve false yada hamle yapılabilir karenin kordinatını , ve taş yeme hamlesi olup olmadığını içeren bir obje dön
+const isFreeSquare = (type, col, row, rotType) => {
+  const ownPieces = getOwnPiecesSquareFromObjectArray(type); // dost taşlar
+  const enemyPieces = getEnemyPiecesSquareFromObjectArray(type); // rakip taşlar
+  const squareCoord = `${col}/${row}`; // kontrol edilecek olan karenin kordinatı
+  // kontrol edilen karede varsa dost taşı
+  const hitOwnPiece = ownPieces.some(
     ([, square]) => square.piece?.square == squareCoord
   );
-  return _hitOwnPiece ? false : squareCoord;
+  if (hitOwnPiece) return false; // gidebileceği karede kendi taşı varsa gidemez
+
+  // kotnrol edilen karede varsa rakip taşı
+  const hitEnemeyPiece = enemyPieces.some(
+    ([, square]) => square.piece?.square == squareCoord
+  );
+
+  // kontrol edilen karede bir rakip taş varsa
+  if (hitEnemeyPiece) {
+    // rakip taşın arkasındaki kare boş mu dolu mu , bunu için o karenin bilgilerini al
+    let enemyBehind =
+      rotType === "up" // kontrol edilen hame yönü yukarı doğruysa
+        ? row < 8 && `${col}/${row + 1}`
+        : rotType === "down" // kontrol edilen hame yönü aşağı doğruysa
+        ? row > 1 && `${col}/${row - 1}`
+        : rotType === "right" // kontrol edilen hame yönü sağa doğruysa
+        ? col < 8 && `${col + 1}/${row}`
+        : col > 1 && `${col - 1}/${row}`; //hamle yönü diğerlerinden bitrisi değilse sola ddoğrudur
+
+    if (!enemyBehind) return false; // rakipt taş köşe sınırlardaysa arkasında gidilebilecek bir nokta yok demektir
+    // tespit edilen rakip taşının arkasında varsa dost taşı
+    const _hitOwnPiece = ownPieces.some(
+      ([, square]) => square.piece?.square == enemyBehind
+    );
+    if (_hitOwnPiece) return false; // rakip taşın arkasında kendi taşımız varsa hamle yapılamaz hamle devam edemez
+
+    // tespit edilen rakip taşın arkasında varsa başka bir rakip taş
+    const _hitEnemeyPiece = enemyPieces.some(
+      ([, square]) => square.piece?.square == enemyBehind
+    );
+
+    if (_hitEnemeyPiece) {
+      return false; // rakip taşın arkasında yine bir rakip taş varsa hamle yapılamaz hamle devam edemez
+    } else {
+      // rakip taşın arkasındaki kordinatta kendi taşımız ve rakip taş yoksa o kordinatı dön
+      return { coord: enemyBehind, eat: true };
+    }
+  }
+
+  return { coord: squareCoord, eat: false }; // ne dost ne rakip taşı varsa kare hamle yapılabilir kareyi dön , taş yenmeyen bir hamledir
 };
 
 // gidebileceği karelerin kordinatları
-export const getAcceptRottaionArray = (
-  { type, square: coord, king },
-  ownPieces
-) => {
-  let rotationArray;
+export const getAcceptRottaionArray = ({ type, square: coord, king }) => {
+  let rotationArray = [];
   const [col, row] = coord.split("/").map(Number);
+  // hamle yapılacak olan taş bir dama taşı mı
   if (!king) {
-    const forwardType = type == "white" ? +1 : -1;
-    const right = col < 8 ? `${col + 1}/${row}` : null;
-    const left = col > 1 ? `${col - 1}/${row}` : null;
-    const forward = `${col}/${row + forwardType}`;
-    rotationArray = [forward, left, right].filter((item) => item);
+    // dama taşı değilse gidebileceği 3 rotasyonu al ve kontrol et
+    const forwardNumber = type == "white" ? +1 : -1;
+    const right = col < 8 ? [col + 1, row] : null;
+    const left = col > 1 ? [col - 1, row] : null;
+    const forward = [col, row + forwardNumber];
+    rotationArray = [forward, right, left] // hamle yapılabilir olan karelerin kordinatlarını array haline getirip map ediyoruz
+      .map((rotation, index) => {
+        if (!rotation) return null; // o rotasyon yoksa null değerini dön
+        const [tcol, trow] = rotation; // rotasyon varsa kolon ve satır değerlerini al
+        const rotType = // rotasyonun yön tipini belirle
+          index == 0 // ilk rotasyon için (ileri rotasyonu)
+            ? type == "white" // taş tipi beyaz taş ise
+              ? "up" // ileri rotasyonu yukarı doğru
+              : "down" // ileri rotasyonu aşağı doğru
+            : index == 1 // 2. rotasyon için (sağ rotasyonu)
+            ? "right" // rosayton tipi sağ
+            : "left"; // 3. index için rotasyon tipi sol
+        const square = isFreeSquare(type, tcol, trow, rotType); // elde edilen rotasyondaki kare hamle yapılabilir bir kare mi kontrol et
+        if (square) return square; // hamle yapılabilir bir kare bulunursa bu değeri yeni arrayin o elemanı için yeni değer olarak ata
+      })
+      .filter((item) => item); // hamle yapılabilen array listesi içerisinde boş değer varsa sil
   } else {
-    rotationArray = [];
+    // dama taşı ise gidebileceği rotasyonları x ve y ekseninde tek tek kontrol et , erişilebilir olanları arraye ekle
     for (let iCol = col + 1; iCol < 9; iCol++) {
-      const square = isFreeSquare(ownPieces, iCol, row);
+      // bulunduğu satırda sağ tüm kareleri kontrol et
+      const square = isFreeSquare(type, iCol, row, "right");
       if (!square) break;
       rotationArray.push(square);
     }
     for (let iCol = col - 1; iCol > 0; iCol--) {
-      const square = isFreeSquare(ownPieces, iCol, row);
+      // bulunduğu satırda sol tüm kareleri kontrol et
+      const square = isFreeSquare(type, iCol, row, "left");
       if (!square) break;
       rotationArray.push(square);
     }
     for (let iRow = row + 1; iRow < 9; iRow++) {
-      const square = isFreeSquare(ownPieces, col, iRow);
+      // bulunduğu kolonda yukarı tüm kareleri kontrol et
+      const square = isFreeSquare(type, col, iRow, "up");
       if (!square) break;
       rotationArray.push(square);
     }
     for (let iRow = row - 1; iRow > 0; iRow--) {
-      const square = isFreeSquare(ownPieces, col, iRow);
+      // bulunduğu kolonda aşağı tüm kareleri  kontrol et
+      const square = isFreeSquare(type, col, iRow, "down");
       if (!square) break;
       rotationArray.push(square);
     }
   }
-  return rotationArray;
+  return rotationArray; // erişilebilir olan karelerin bir listesini dönder
 };
 
-//// game contoller
-// export const checkCanDrop = ({ coord, squareCoord, type, pieces, king }) => {
-//   // Kontrol edilecek taş türüne göre düşman ve kendi taşlarını seç
-//   const ownPieces = pieces.filter((piece) => piece.type === type);
-//   const enemyPieces = pieces.filter((piece) => piece.type !== type);
-
-//   const rotationArray = getAcceptRottaionArray({
-//     type,
-//     coord,
-//     king,
-//     ownPieces,
-//   });
-
-//   // Hareketin kabul edilebilir olduğunu kontrol et
-//   let acceptableRotations = king
-//     ? rotationArray
-//     : rotationArray.filter((rotation) =>
-//         ownPieces.every((piece) => piece.coord !== rotation)
-//       );
-
-//   // hamle yapacak boş kare yoksa false dön
-//   if (acceptableRotations?.length == 0) return false;
-
-//   // Yakındaki düşman taşları kontrol et
-//   const closestEnemyCoords = [];
-//   acceptableRotations.forEach((rotation) => {
-//     const closestEnemy = enemyPieces.find((piece) => piece.coord === rotation);
-//     if (closestEnemy) {
-//       const [eCol, eRow] = rotation.split("/").map(Number);
-
-//       const [col, row] = coord.split("/").map(Number);
-
-//       const forwardType = eRow > row ? +1 : -1;
-//       const newRotation =
-//         eCol === col
-//           ? `${eCol}/${eRow + forwardType}`
-//           : `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`;
-
-//       const isNotFreeBehindEnemy = enemyPieces.some(
-//         (piece) => piece.coord === newRotation
-//       );
-//       const isNotFreeBehindOwned = ownPieces.some(
-//         (piece) => piece.coord === newRotation
-//       );
-
-//       if (!isNotFreeBehindEnemy && !isNotFreeBehindOwned) {
-//         closestEnemyCoords.push(newRotation);
-//       }
-//     }
-//   });
-//   // Eğer yakında bir düşman varsa, sadece ona hamle yapabilirsin
-//   if (closestEnemyCoords.length > 0) {
-//     return closestEnemyCoords.includes(squareCoord);
-//   } else {
-//     // gidilebilir alanlardan herhangi biri test edilen kareye aitse ve o kare üzerinde rakip taşı yoksa
-//     return acceptableRotations.some(
-//       (square) =>
-//         square == squareCoord &&
-//         !enemyPieces.some((piece) => piece.coord === squareCoord)
-//     );
-//   }
-// };
-
-// hamle için seçtiğim taşın hamle yapabileceği bir kare var mı
+// hamle için seçtiğim taşın hamle yapabileceği bir kare var mı , varsa o kareleri dönderir
 export const pieceMoveSquares = (selectedPiece) => {
-  const squares = Store.getState().checkers.entities;
   const movedSquares = [];
-  const movedEnemySquares = [];
-  const ownPiecesSquare = getOwnPiecesSquareFromObjectArray(
-    squares,
-    selectedPiece.type
-  );
-  const [col, row] = selectedPiece.square.split("/").map(Number); // hamle yapılmak üzere seçilen taşın colonu
-  const rotations = getAcceptRottaionArray(selectedPiece, ownPiecesSquare);
-  if (!selectedPiece.king) {
-    for (const rotation of rotations) {
-      // hamle yapabileceğim karelerin tamamını tek tek dolaş
-      const squarePiece = squares[rotation]?.piece; // hamle mesafemdeki karenin içerisindeki taş
-      if (!squarePiece) {
-        // hamle mesafemin içerisindeki karede hiç taş yoksa
-        movedSquares.push(rotation);
-      } else if (squarePiece.type !== selectedPiece.type) {
-        // hamle mesafemin içerisinde rakip taşı varsa , arkasındaki kare boş mu onu kontrol et
-        const [eCol, eRow] = squarePiece.square.split("/").map(Number); // denk geldiğin rakip taşın kordinatını al
-        const forwardType = selectedPiece.type == "white" ? +1 : -1;
-        // rakip taşın arkasınındaki karenin kordinatını alıyoruz
-        const enemyBehind =
-          eCol === col
-            ? `${eCol}/${eRow + forwardType}` // aynı kolondaysak , rakibin bir arkasındaki satırı seç
-            : `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`; // aynı satırdaysak , rakibin bir arkasındaki kolonu seç
+  const eatSpacedSquares = [];
+  const rotations = getAcceptRottaionArray(selectedPiece);
 
-        // seçilen yeni karede bir taş var mı;
-        if (!squares[enemyBehind]?.piece) {
-          // seçilen yeni karede hiçbir taş yoksa hamle yapılabilir
-          movedEnemySquares.push(enemyBehind);
+  let lastSpaced; // son üsten atlama hamlesi yapılan coord
+  let lastIndex; // son üstten atlama hamlesi yapılan index
+  rotations.forEach(({ coord, eat }, index) => {
+    eat
+      ? (eatSpacedSquares.push(coord),
+        (lastSpaced = coord),
+        (lastIndex = index))
+      : movedSquares.push(coord);
+
+    // eğer hamle yapan taş dama taşıysa
+    if (selectedPiece.king) {
+      // bir taşın üstünden atlanıldıysa
+      if (lastSpaced) {
+        // şuan kontrol edilen taş son üzerinden atlanan taş ile aynı satır yada kolonda yer alıyorsa
+        const [pCol, pRow] = lastSpaced.split("/").map(Number); // önceki atlanan karenin kordinatları
+        const [cCol, cRow] = coord.split("/").map(Number); // hedef karenin kordinatları
+        // kareler aynı satır yada aynı kolon üzerinde yer alıyorsa
+        if (pCol == cCol || pRow == cRow) {
+          // iki kare arasındaki mesafe 1 birim ise
+          if (Math.abs(pCol - cCol) == 1 || Math.abs(pRow - cRow) == 1) {
+            // son atlanan kare artık bu kare
+            lastSpaced = coord;
+            // son atlanan kare indexi artık bu karenin indexi
+            lastIndex = index;
+            // atlanabilir kare listesine ekle
+            eatSpacedSquares.push(coord);
+          }
         }
       }
     }
-  } else {
-  }
+  });
   const accesSquares =
-    movedEnemySquares.length > 0 ? movedEnemySquares : movedSquares; // düşman taşını yiyebileceğin bir hamle varsa sadece o karelere hamle yapabilirsin taşı yemek zorundasın
+    eatSpacedSquares.length > 0 ? eatSpacedSquares : movedSquares; // düşman taşını yiyebileceğin bir hamle varsa sadece o karelere hamle yapabilirsin taşı yemek zorundasın
   return accesSquares;
 };
 
-// /// check force piece
-// export const checkForcePiece = (type, pieces) => {
-//   const ownPieces = pieces.filter((piece) => piece.type == type);
-//   const enemyPieces = pieces.filter((piece) => piece.type != type);
-//   let forcedPieces = [];
-//   for (const { king, type, coord, id } of ownPieces) {
-//     if (!king) {
-//       forcedPieces.push(
-//         checkForce({ type, coord, id }, enemyPieces, ownPieces)
-//       );
-//     }
-//   }
-//   forcedPieces = forcedPieces.filter((item) => item);
-//   return forcedPieces;
-// };
-
-// ///
-// export const checkForce = ({ type, coord, id }, enemyPieces, ownPieces) => {
-//   const rotationArray = getAcceptRottaionArray({ type, coord, ownPieces });
-//   const closesetEnemys = rotationArray.filter((rotation) =>
-//     enemyPieces.some((ePiece) => ePiece.coord == rotation)
-//   );
-
-//   if (closesetEnemys.length > 0) {
-//     const col = Number(coord.split("/")[0]);
-//     for (const ePiece of closesetEnemys) {
-//       const forwardType = type == "white" ? +1 : -1;
-//       const [eCol, eRow] = ePiece.split("/").map(Number);
-
-//       const rowRotation =
-//         eRow + forwardType <= 8 &&
-//         eRow + forwardType >= 1 &&
-//         `${eCol}/${eRow + forwardType}`;
-
-//       const colRotation =
-//         eCol + 1 <= 8 &&
-//         eCol - 1 >= 1 &&
-//         `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`;
-
-//       const newRotation = eCol === col ? rowRotation : colRotation;
-//       if (newRotation) {
-//         const isNotFreeBehindEnemy = enemyPieces.some(
-//           (piece) => piece.coord === newRotation
-//         );
-//         const isNotFreeBehindOwned = ownPieces.some(
-//           (piece) => piece.coord === newRotation
-//         );
-
-//         if (!isNotFreeBehindOwned && !isNotFreeBehindEnemy) {
-//           return id;
-//         }
-//       }
-//     }
-//   }
-// };
-
 /// üzerinden atlanan rakip taşın tespiti
 export const spacedSquares = (droppedPiece, squareCoord) => {
+  const squares = Store.getState().checkers.entities;
+
   const [pCol, pRow] = droppedPiece.square.split("/").map(Number); // hamle yapılmadan önceki konum
   const [nCol, nRow] = squareCoord.split("/").map(Number); // hamlel yapıldıktan sonraki yeni kodum
   const spacedSquareCoord = [];
-  if (pCol == nCol) {
-    // hala aynı kolondaysak , satır değiştirmişizdir
-    const diff = pRow - nRow; // satırlar arasındaki fark
-    const distance = Math.abs(diff); // satırlar arasındaki mesafe
-    const nextRow = pRow + (diff < 0 ? +1 : -1); //
-    /**
-     * bir kareden fazla kare ileri hamle yapıldıysa bir taşın üzerinden atlanılmıştır ,
-     * üzerinden atlanılan karenin kordinatını al
-     *  */
-    if (distance > 1) spacedSquareCoord.push(`${pCol}/${nextRow}`);
-  } else {
-    // hala aynı kolonda değil aynı satırdaysa , kolonumuz değişmiştir
-    const diff = pCol - nCol; // kolonlar arasındaki fark
-    const distance = Math.abs(diff); // kolonlar arasındaki mesafe
-    const nextCol = pCol + (diff < 0 ? +1 : -1);
-    /**
-     * bir kareden fazla kare ileri hamle yapıldıysa bir taşın üzerinden atlanılmıştır ,
-     * üzerinden atlanılan karenin kordinatını al
-     *  */
-    if (distance > 1) spacedSquareCoord.push(`${nextCol}/${pRow}`);
+
+  const diffCol = pCol - nCol; // kolonlar farkı
+  const diffRow = pRow - nRow; // satırlar farkı
+
+  // aynı kolon üzerindelerse
+  if (diffCol === 0) {
+    const absDiffRow = Math.abs(diffRow); // satırların uzaklığı
+    // satırların uzaklığı 1 den fazlaysa yenen bir taş var demektir
+    if (absDiffRow > 1) {
+      // hamle yapılan yöne göre arttırma yada eksiltme işlemini belirle
+      const direction = diffRow > 0 ? -1 : 1;
+      // iki kare arasındaki tüm kareleri atlanan karaler dizisine ekle
+      for (let row = pRow + direction; row !== nRow; row += direction) {
+        spacedSquareCoord.push(`${pCol}/${row}`);
+      }
+    }
   }
-  return spacedSquareCoord;
+  // aynı satır üzerindelerse
+  else {
+    const absDiffCol = Math.abs(diffCol); // kolonların uzaklığı
+    // satırların uzaklığı 1 den fazlaysa yenen bir taş var demektir
+    if (absDiffCol > 1) {
+      // hamle yapılan yöne göre arttırma yada eksiltme işlemini belirle
+      const direction = diffCol > 0 ? -1 : 1;
+      // iki kare arasındaki tüm kareleri atlanan karaler dizisine ekle
+      for (let col = pCol + direction; col !== nCol; col += direction) {
+        spacedSquareCoord.push(`${col}/${pRow}`);
+      }
+    }
+  }
+
+  //atlanan karelerin sadece içerisinde taş olanları seç
+  const inPieceSquareCoords = spacedSquareCoord.filter(
+    (coord) => squares[coord]?.piece
+  );
+
+  return inPieceSquareCoords;
 };
 
 // taş yeme zorunluluğunu kontrol eder , bu hamleye zorunlu bir taş varsa o taşın id sini içeren dizi dönderir
-export const eatingRequirementPiecesCheck = (piece) => {
-  const squares = Store.getState().checkers.entities;
+export const eatingRequirementPiecesCheck = () => {
+  const turnColor = Store.getState().checkers.turnColor;
   const eatingPieces = [];
-  const ownPieceSquares = getOwnPiecesSquareFromObjectArray(
-    squares,
-    piece.type
-  ); // aynı tipte taşları içeren tüm kareleri alır
+  const ownPieceSquares = getOwnPiecesSquareFromObjectArray(turnColor); // aynı tipte taşları içeren tüm kareleri alır
+  // console.table(ownPieceSquares);
   ownPieceSquares.forEach(([, squareValue]) => {
-    const forced = eatingRequirementPieceCheck(
-      squareValue.piece,
-      ownPieceSquares
-    );
+    const forced = eatingRequirementPieceCheck(squareValue.piece);
     forced && eatingPieces.push(forced);
   });
   return eatingPieces;
 };
 
-// tek bir taş için taş yeme zorunluluğunu kontrol eder , bu hamleye zorunlu bir taş varsa o taşın id sini dönderir
+// tek bir taş için taş yeme zorunluluğunu kontrol eder , taşın hamle yapabileceği kordinatları alır ve bu kordinatlar içerisinde bir taş yiyebilen hamle varsa taşın kendi id sini yoksa null
 export const eatingRequirementPieceCheck = (piece) => {
-  const squares = Store.getState().checkers.entities;
-  const ownPieceSquares = getOwnPiecesSquareFromObjectArray(
-    squares,
-    piece.type
-  ); // aynı tipte taşları içeren tüm kareleri alır
-
-  const col = Number(piece.square.split("/")[0]);
-  // karelerin hepsini tek tek gez
-  const rotations = getAcceptRottaionArray(piece, ownPieceSquares); // karenin içerisindeki taşın gidebileceği kareleri al
-  for (const rotation of rotations) {
-    // hamle yapabileceğim karelerin tamamını tek tek dolaş
-    const squarePiece = squares[rotation]?.piece; // hamle mesafemdeki karenin içerisindeki taş
-    if (squarePiece) {
-      if (squarePiece.type !== piece.type) {
-        // hamle mesafemin içerisinde rakip taşı varsa , arkasındaki kare boş mu onu kontrol et
-        const [eCol, eRow] = squarePiece.square.split("/").map(Number); // denk geldiğin rakip taşın kordinatını al
-        const forwardType = piece.type == "white" ? +1 : -1;
-        // rakip taşın arkasınındaki karenin kordinatını alıyoruz
-        const enemyBehind =
-          eCol === col
-            ? `${eCol}/${eRow + forwardType}` // aynı kolondaysak , rakibin bir arkasındaki satırı seç
-            : `${eCol > col ? eCol + 1 : eCol - 1}/${eRow}`; // aynı satırdaysak , rakibin bir arkasındaki kolonu seç
-
-        // seçilen yeni karede bir taş var mı;
-        if (!squares[enemyBehind]?.piece) {
-          // seçilen yeni karede hiçbir taş yoksa hamle yapılabilir
-          return piece.id;
-        }
-      }
-    }
+  console.table(piece);
+  const rotations = getAcceptRottaionArray(piece); // karenin içerisindeki taşın gidebileceği kareleri al
+  for (const { c, eat } of rotations) {
+    if (eat) return piece.id;
   }
+  return null;
 };
 
 export const getOwnPiecesSquareFromObjectArray = (type) => {
