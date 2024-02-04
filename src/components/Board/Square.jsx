@@ -113,15 +113,19 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
     <div // square container
       ref={drop}
       className={classNames(
-        "border h-20 w-20 flex justify-center items-center text-2xl font-bold text-slate-400/50 select-none relative",
+        "h-20 w-20 flex justify-center items-center select-none relative",
         {
-          "bg-slate-300": (col + row) % 2 === 0, // Light color if the sum of row and column numbers is even
-          "bg-slate-500": (col + row) % 2 !== 0,
+          "bg-stone-300": (col + row) % 2 === 0, // Light color if the sum of row and column numbers is even
+          "bg-amber-950": (col + row) % 2 !== 0,
           "!bg-green-300": canDrop,
         } // Dark color if the sum of row and column numbers is odd
       )}
     >
-      {piece ? <Piece piece={piece} /> : <span className="opacity-50">{squareCoord}</span>}
+      {piece ? (
+        <Piece piece={piece} />
+      ) : (
+        <span className="opacity-50 text-2xl font-bold  hidden">{squareCoord}</span>
+      )}
       {/* Preview for drop area */}
       {isOver ? (
         <div

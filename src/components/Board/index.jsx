@@ -23,7 +23,7 @@ const Board = () => {
   return (
     <div
       id="board"
-      className="m-auto mt-10 grid grid-cols-[calc(.6*5rem)_calc(8*5rem)] place-content-center"
+      className="m-auto mt-10 grid grid-cols-[calc(.6*5rem)_calc(8*5rem)] place-content-center box-border"
     >
       <Rows />
       {/* Board Main start */}

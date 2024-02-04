@@ -1,9 +1,9 @@
 import { DragPreviewImage, useDrag } from "react-dnd";
 // images
-import dama_white from "../../assets/dama_white.png";
-import dama_black from "../../assets/dama_black.png";
-import dama_white_king from "../../assets/dama_white_king.png";
-import dama_black_king from "../../assets/dama_black_king.png";
+import piece_white from "../../assets/piece_white.png";
+import piece_black from "../../assets/piece_black.png";
+import piece_white_king from "../../assets/piece_white_king.png";
+import piece_black_king from "../../assets/piece_black_king.png";
 // redux
 import { useSelector } from "react-redux";
 import { checkersSelector } from "../../redux/slices/checkersSlice";
@@ -60,11 +60,11 @@ const Piece = ({ piece }) => {
   const piese_img =
     piece.type == "white"
       ? piece.king
-        ? dama_white_king
-        : dama_white
+        ? piece_white_king
+        : piece_white
       : piece.king
-      ? dama_black_king
-      : dama_black;
+      ? piece_black_king
+      : piece_black;
 
   return (
     <>
