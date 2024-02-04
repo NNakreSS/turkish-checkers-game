@@ -6,6 +6,11 @@ const initialState = () =>
   checkersEntityAdapter.getInitialState({
     forcedPieces: [],
     turnColor: "white",
+    capturePieces: {
+      black: 0,
+      white: 0,
+    },
+    winner: null,
   });
 
 const reducers = {
@@ -18,6 +23,10 @@ const reducers = {
   },
   toggleTurnColor(state) {
     state.turnColor = state.turnColor == "white" ? "black" : "white";
+  },
+  capturePiece(state, { payload }) {
+    state.capturePieces[payload] += 1;
+    if (state.capturePieces[payload] == 16) state.winner = payload;
   },
 };
 
@@ -41,4 +50,5 @@ export const {
   updatePieces,
   setForcedPiece,
   toggleTurnColor,
+  capturePiece,
 } = checkersSlice.actions;

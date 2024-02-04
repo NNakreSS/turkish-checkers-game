@@ -10,11 +10,12 @@ import {
   setForcedPiece,
   toggleTurnColor,
   updatePiece,
+  capturePiece,
 } from "../../redux/slices/checkersSlice";
 // utilities
 import {
-  eatingRequirementPieceCheck,
-  eatingRequirementPiecesCheck,
+  captureRequirementPieceCheck,
+  captureRequirementPiecesCheck,
   pieceMoveSquares,
   spacedSquares,
 } from "../../utilities/utilitie";
@@ -36,8 +37,8 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
     const prevSquare = squares[droppedPiece.square]; // taşın hamle yapılmadan önceki bulunduğu kare
     const spaceSquares = spacedSquares(droppedPiece, squareCoord);
 
+    // önceki karede bulunan taş değerini sil
     dispatch(
-      // önceki karede bulunan taş değerini sil
       updatePiece({
         id: prevSquare.id,
         changes: { piece: null },
@@ -45,8 +46,8 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
     );
 
     const setKing = !droppedPiece.king && damaSquare ? true : droppedPiece.king;
+    // taşın bırakıldığı yeni kareyi bırakılan taş ile güncelle
     dispatch(
-      // taşın bırakıldığı yeni kareyi bırakılan taş ile güncelle
       updatePiece({
         id: squareCoord,
         changes: {
@@ -56,19 +57,21 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
     );
 
     spaceSquares.forEach((spacedSquare) => {
+      // karede bulunan taş değerini sil
       dispatch(
-        // karede bulunan taş değerini sil
         updatePiece({
           id: spacedSquare,
           changes: { piece: null },
         })
       );
+      // rakibe puan ekle
+      dispatch(capturePiece(droppedPiece.type));
     });
 
     // bu kareye gelinerek bir rakip taş yenildiyse , bu karaden devam hamlesi var mı onu kontrol et
     if (spaceSquares.length > 0) {
       // hamle sırası olan taşın devam hamlesi var mı kontrol et
-      const eatingRequiredPiece = eatingRequirementPieceCheck({
+      const captureRequiredPiece = captureRequirementPieceCheck({
         ...droppedPiece,
         square: squareCoord,
         king: setKing,
@@ -77,7 +80,7 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
        * son hamle yapan taraf için taş yiyebileceği bir devam hamlesi yoksa
        * veya bu hamleyi yapabilecek taş son hamle yapılan taş ile aynı değil ilse sıra rakibe geçer
        *  */
-      if (eatingRequiredPiece == droppedPiece.id) {
+      if (captureRequiredPiece == droppedPiece.id) {
         // oyuncu taraf için yeme hamlesi yapılabilir taş listesinde son hamle yapılan taş varsa devam et
         dispatch(setForcedPiece([droppedPiece.id]));
       } else {
@@ -91,8 +94,8 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
 
   const switchTurnColor = () => {
     dispatch(toggleTurnColor());
-    const eatingRequiredPieces = eatingRequirementPiecesCheck();
-    dispatch(setForcedPiece([...eatingRequiredPieces]));
+    const captureRequiredPieces = captureRequirementPiecesCheck();
+    dispatch(setForcedPiece([...captureRequiredPieces]));
   };
 
   // Drag and drop event handlers
@@ -124,7 +127,9 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
       {piece ? (
         <Piece piece={piece} />
       ) : (
-        <span className="opacity-50 text-2xl font-bold  hidden">{squareCoord}</span>
+        <span className="opacity-50 text-2xl font-bold  hidden">
+          {squareCoord}
+        </span>
       )}
       {/* Preview for drop area */}
       {isOver ? (

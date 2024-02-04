@@ -79,11 +79,11 @@ const isFreeSquare = (type, col, row, rotType) => {
       return false; // rakip taşın arkasında yine bir rakip taş varsa hamle yapılamaz hamle devam edemez
     } else {
       // rakip taşın arkasındaki kordinatta kendi taşımız ve rakip taş yoksa o kordinatı dön
-      return { coord: enemyBehind, eat: true };
+      return { coord: enemyBehind, capture: true };
     }
   }
 
-  return { coord: squareCoord, eat: false }; // ne dost ne rakip taşı varsa kare hamle yapılabilir kareyi dön , taş yenmeyen bir hamledir
+  return { coord: squareCoord, capture: false }; // ne dost ne rakip taşı varsa kare hamle yapılabilir kareyi dön , taş yenmeyen bir hamledir
 };
 
 // gidebileceği karelerin kordinatları
@@ -146,14 +146,14 @@ export const getAcceptRottaionArray = ({ type, square: coord, king }) => {
 // hamle için seçtiğim taşın hamle yapabileceği bir kare var mı , varsa o kareleri dönderir
 export const pieceMoveSquares = (selectedPiece) => {
   const movedSquares = [];
-  const eatSpacedSquares = [];
+  const captureSpacedSquares = [];
   const rotations = getAcceptRottaionArray(selectedPiece);
 
   let lastSpaced; // son üsten atlama hamlesi yapılan coord
   let lastIndex; // son üstten atlama hamlesi yapılan index
-  rotations.forEach(({ coord, eat }, index) => {
-    eat
-      ? (eatSpacedSquares.push(coord),
+  rotations.forEach(({ coord, capture }, index) => {
+    capture
+      ? (captureSpacedSquares.push(coord),
         (lastSpaced = coord),
         (lastIndex = index))
       : movedSquares.push(coord);
@@ -174,14 +174,14 @@ export const pieceMoveSquares = (selectedPiece) => {
             // son atlanan kare indexi artık bu karenin indexi
             lastIndex = index;
             // atlanabilir kare listesine ekle
-            eatSpacedSquares.push(coord);
+            captureSpacedSquares.push(coord);
           }
         }
       }
     }
   });
   const accesSquares =
-    eatSpacedSquares.length > 0 ? eatSpacedSquares : movedSquares; // düşman taşını yiyebileceğin bir hamle varsa sadece o karelere hamle yapabilirsin taşı yemek zorundasın
+    captureSpacedSquares.length > 0 ? captureSpacedSquares : movedSquares; // düşman taşını yiyebileceğin bir hamle varsa sadece o karelere hamle yapabilirsin taşı yemek zorundasın
   return accesSquares;
 };
 
@@ -232,24 +232,24 @@ export const spacedSquares = (droppedPiece, squareCoord) => {
 };
 
 // taş yeme zorunluluğunu kontrol eder , bu hamleye zorunlu bir taş varsa o taşın id sini içeren dizi dönderir
-export const eatingRequirementPiecesCheck = () => {
+export const captureRequirementPiecesCheck = () => {
   const turnColor = Store.getState().checkers.turnColor;
-  const eatingPieces = [];
+  const capturePieces = [];
   const ownPieceSquares = getOwnPiecesSquareFromObjectArray(turnColor); // aynı tipte taşları içeren tüm kareleri alır
   // console.table(ownPieceSquares);
   ownPieceSquares.forEach(([, squareValue]) => {
-    const forced = eatingRequirementPieceCheck(squareValue.piece);
-    forced && eatingPieces.push(forced);
+    const forced = captureRequirementPieceCheck(squareValue.piece);
+    forced && capturePieces.push(forced);
   });
-  return eatingPieces;
+  return capturePieces;
 };
 
 // tek bir taş için taş yeme zorunluluğunu kontrol eder , taşın hamle yapabileceği kordinatları alır ve bu kordinatlar içerisinde bir taş yiyebilen hamle varsa taşın kendi id sini yoksa null
-export const eatingRequirementPieceCheck = (piece) => {
+export const captureRequirementPieceCheck = (piece) => {
   console.table(piece);
   const rotations = getAcceptRottaionArray(piece); // karenin içerisindeki taşın gidebileceği kareleri al
-  for (const { c, eat } of rotations) {
-    if (eat) return piece.id;
+  for (const { c, capture } of rotations) {
+    if (capture) return piece.id;
   }
   return null;
 };
