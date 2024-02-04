@@ -7,6 +7,7 @@ import dama_black_king from "../../assets/dama_black_king.png";
 // redux
 import { useSelector } from "react-redux";
 import { checkersSelector } from "../../redux/slices/checkersSlice";
+import { toast } from "react-toastify";
 
 const Piece = ({ piece }) => {
   const { forcedPieces, turnColor } = useSelector(checkersSelector);
@@ -20,7 +21,12 @@ const Piece = ({ piece }) => {
         if (forcedPieces.includes(selectedPiece.id)) {
           return true;
         } else {
-          console.info("Bir taşı yemek zorundasın");
+          toast.warn("Bir taşı yemek zorundasın !", {
+            position: "top-right",
+            autoClose: 3000,
+            closeOnClick: true,
+            theme: "light",
+          });
           return false; // oyması zorunlu bir taş var ve seçilen bu taş değilse izin verme
         }
       } else {
@@ -29,7 +35,12 @@ const Piece = ({ piece }) => {
       }
       // sıra oynatılmaya çalışılan taşta değilse uyarı ver
     } else {
-      console.warn("sıra rakipte");
+      toast.error("Sıra rakipte !", {
+        position: "top-right",
+        autoClose: 3000,
+        closeOnClick: true,
+        theme: "light",
+      });
       return false; // sırası gelmeyen biri hamle yapmaya çalışırsa izin verme
     }
   };
