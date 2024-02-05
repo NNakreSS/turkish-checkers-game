@@ -14,15 +14,10 @@ const CapturePieces = () => {
   const whitePieces = new Array(white).fill();
 
   return (
-    <div className="bg-orange-900 w-full p-3 rounded-3xl shadow-[inset_0_0_30px_rgba(0,0,0)] border-2 border-black">
+    <div className="bg-orange-900 w-full p-1 rounded-lg shadow-[inset_0_0_30px_rgba(0,0,0)] border-2 border-black select-none">
       <div id="blackPieces" className="relative h-[50%]">
         {blackPieces.map((x, i) => (
-          <Piece
-            key={i}
-            style={{ top: i * 15 + "px" }}
-            i={i}
-            src={piece_white}
-          />
+          <Piece key={i} style={{ top: i * 5 + "%" }} i={i} src={piece_white} />
         ))}
       </div>
       <div id="whitePieces" className="relative h-[50%]">
@@ -30,7 +25,7 @@ const CapturePieces = () => {
           <Piece
             key={i}
             i={i}
-            style={{ bottom: i * 15 + "px" }}
+            style={{ bottom: i * 6 + "%" }}
             src={piece_black}
           />
         ))}

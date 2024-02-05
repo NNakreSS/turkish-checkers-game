@@ -1,4 +1,4 @@
-import { DragPreviewImage, useDrag } from "react-dnd";
+import { useDrag } from "react-dnd";
 // images
 import piece_white from "../../assets/piece_white.png";
 import piece_black from "../../assets/piece_black.png";
@@ -46,7 +46,7 @@ const Piece = ({ piece }) => {
     }
   };
 
-  const [{ opacity }, dragRef, dragPreview] = useDrag(
+  const [{ opacity }, dragRef] = useDrag(
     () => ({
       type: "piece",
       item: piece,
@@ -69,13 +69,12 @@ const Piece = ({ piece }) => {
 
   return (
     <>
-      <DragPreviewImage connect={dragPreview} src={piese_img} />
       <img
         ref={dragRef}
         style={{ opacity }}
         data-piece={JSON.stringify(piece)}
         src={piese_img}
-        className={classNames("w-16 h-16 piece z-10", {
+        className={classNames("w-9/12 piece z-10", {
           "animate-bounce": forcedPieces.includes(piece.id),
         })}
       />

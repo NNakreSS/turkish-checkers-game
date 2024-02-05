@@ -1,5 +1,3 @@
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { DndProvider } from "react-dnd";
 import classNames from "classnames";
 // utilites
 import { createGameBoard } from "../../utilities/utilitie";
@@ -27,21 +25,25 @@ const Board = () => {
     <div className="relative">
       <div
         id="board"
-        className="m-auto h-screen grid grid-cols-[calc(.6*5rem)_calc(8*5rem)_5rem] place-content-center box-border justify-items-center gap-1 shadow-[inset_0_0_30px_rgba(0,0,0)]"
+        className={classNames(
+          "m-auto p-5 box-border grid gap-[2px] place-content-center",
+          "grid-cols-[calc(0.6*2rem)_calc(8*2.3rem)_2rem] grid-rows-[calc(8*2.3rem)_calc(0.6*2rem)]",
+          "sm:grid-cols-[calc(0.6*3rem)_calc(8*4rem)_3rem] sm:grid-rows-[calc(8*4rem)_calc(0.6*3rem)]",
+          "md:grid-cols-[calc(0.6*4rem)_calc(8*4.5rem)_4rem] md:grid-rows-[calc(8*4.5rem)_calc(0.6*4rem)]"
+        )}
       >
         <Rows />
-        {/* Board Main start */}
-        <DndProvider backend={HTML5Backend}>
-          <BoardMain />
-        </DndProvider>
+        <BoardMain />
         <CapturePieces />
         <div
-          className={classNames("w-full h-11 rounded-bl-lg transition-all delay-150", {
-            "bg-black": turnColor == "black",
-            "bg-white": turnColor == "white",
-          })}
+          className={classNames(
+            "w-full h-full rounded-bl-lg transition-all delay-150",
+            {
+              "bg-black": turnColor == "black",
+              "bg-white": turnColor == "white",
+            }
+          )}
         ></div>
-        {/* Board Main end */}
         <Cols />
       </div>
     </div>

@@ -29,6 +29,7 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
 
   // seçilen taş bu kareye hamle yapabilir mi
   const canDropHandle = (selectedPiece) => {
+    console.log("kere çalıştı");
     const pieceMovedSquares = pieceMoveSquares(selectedPiece); // taşın hamle yapabileceği kareler
     return pieceMovedSquares.includes(squareCoord); // şuanki kare o taşın hamle yapabileceği karelerin içerisinde mi yer alıyor
   };
@@ -116,28 +117,21 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
     <div // square container
       ref={drop}
       className={classNames(
-        "h-20 w-20 flex justify-center items-center select-none relative",
+        "flex justify-center items-center select-none relative",
         {
           "bg-stone-300": (col + row) % 2 === 0, // Light color if the sum of row and column numbers is even
           "bg-amber-950": (col + row) % 2 !== 0,
-          "!bg-green-300": canDrop,
         } // Dark color if the sum of row and column numbers is odd
       )}
     >
-      {piece ? (
-        <Piece piece={piece} />
-      ) : (
-        <span className="opacity-50 text-2xl font-bold  hidden">
-          {squareCoord}
-        </span>
-      )}
+      {piece && <Piece piece={piece} />}
       {/* Preview for drop area */}
-      {isOver ? (
+      {isOver && piece?.square !== squareCoord ? (
         <div
           className={classNames(
-            "h-10 w-10  rounded-full absolute",
+            "w-1/2 h-1/2 rounded-full",
             {
-              "bg-white": canDrop,
+              "bg-green-300": canDrop,
             },
             {
               "bg-red-300": !canDrop,
@@ -145,9 +139,7 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
           )}
         ></div>
       ) : (
-        canDrop && (
-          <div className="h-10 w-10  rounded-full absolute bg-gray-600"></div>
-        )
+        canDrop && <div className="w-1/2 h-1/2 rounded-full bg-gray-400"></div>
       )}
       {/* End preview */}
     </div>
