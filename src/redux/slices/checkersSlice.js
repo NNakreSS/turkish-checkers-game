@@ -15,7 +15,7 @@ const initialState = () =>
 
 const reducers = {
   addPieces: checkersEntityAdapter.addMany,
-  removePiece: checkersEntityAdapter.removeOne,
+  removePieces: checkersEntityAdapter.removeAll,
   updatePiece: checkersEntityAdapter.updateOne,
   updatePieces: checkersEntityAdapter.updateMany,
   setForcedPiece(state, { payload }) {
@@ -27,6 +27,9 @@ const reducers = {
   capturePiece(state, { payload }) {
     state.capturePieces[payload] += 1;
     if (state.capturePieces[payload] == 16) state.winner = payload;
+  },
+  resetGameSates() {
+    return initialState();
   },
 };
 
@@ -51,4 +54,5 @@ export const {
   setForcedPiece,
   toggleTurnColor,
   capturePiece,
+  resetGameSates,
 } = checkersSlice.actions;

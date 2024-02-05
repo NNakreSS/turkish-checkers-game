@@ -246,7 +246,6 @@ export const captureRequirementPiecesCheck = () => {
 
 // tek bir taş için taş yeme zorunluluğunu kontrol eder , taşın hamle yapabileceği kordinatları alır ve bu kordinatlar içerisinde bir taş yiyebilen hamle varsa taşın kendi id sini yoksa null
 export const captureRequirementPieceCheck = (piece) => {
-  console.table(piece);
   const rotations = getAcceptRottaionArray(piece); // karenin içerisindeki taşın gidebileceği kareleri al
   for (const { c, capture } of rotations) {
     if (capture) return piece.id;

@@ -8,6 +8,7 @@ import piece_black_king from "../../assets/piece_black_king.png";
 import { useSelector } from "react-redux";
 import { checkersSelector } from "../../redux/slices/checkersSlice";
 import { toast } from "react-toastify";
+import classNames from "classnames";
 
 const Piece = ({ piece }) => {
   const { forcedPieces, turnColor } = useSelector(checkersSelector);
@@ -74,11 +75,10 @@ const Piece = ({ piece }) => {
         style={{ opacity }}
         data-piece={JSON.stringify(piece)}
         src={piese_img}
-        className="w-16 h-16 piece z-10"
+        className={classNames("w-16 h-16 piece z-10", {
+          "animate-bounce": forcedPieces.includes(piece.id),
+        })}
       />
-      {forcedPieces.includes(piece.id) && (
-        <div className="absolute h-full w-full bg-sky-200 select-none "></div>
-      )}
     </>
   );
 };
