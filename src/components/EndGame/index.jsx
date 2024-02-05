@@ -18,7 +18,7 @@ const EndGame = () => {
   };
 
   return (
-    <div className="absolute w-screen h-screen bg-black/60 z-50 top-0 left-0 flex justify-center items-center">
+    <div className="absolute w-[100%] h-[100%] bg-black/60 z-50 top-0 left-0 flex justify-center items-center">
       <div className="bg-white rounded-md p-5 min-w-96 flex flex-wrap flex-col items-center relative shadow-lg shadow-white/50">
         <span className="text-5xl text-green-500 font-bold">Kazanan</span>
         <span
