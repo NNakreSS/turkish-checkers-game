@@ -19,6 +19,7 @@ import {
   pieceMoveSquares,
   spacedSquares,
 } from "../../utilities/utilitie";
+import { memo } from "react";
 
 const Square = ({ square: { id: squareCoord, piece } }) => {
   const dispatch = useDispatch();
@@ -28,11 +29,8 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
   const damaSquare = row === 8 || row === 1; // eğer bu kare 1. yada 8. satırda yer alıyorsa dama karesidir , bu karaye gelen taş dama taşı olur
 
   // seçilen taş bu kareye hamle yapabilir mi
-  const canDropHandle = (selectedPiece) => {
-    console.log("kere çalıştı");
-    const pieceMovedSquares = pieceMoveSquares(selectedPiece); // taşın hamle yapabileceği kareler
-    return pieceMovedSquares.includes(squareCoord); // şuanki kare o taşın hamle yapabileceği karelerin içerisinde mi yer alıyor
-  };
+  const canDropHandle = (pieceMovedSquares) =>
+    pieceMovedSquares.includes(squareCoord); // şuanki kare o taşın hamle yapabileceği karelerin içerisinde mi yer alıyor
 
   const dropHandle = (droppedPiece) => {
     const prevSquare = squares[droppedPiece.square]; // taşın hamle yapılmadan önceki bulunduğu kare
@@ -103,14 +101,14 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
   const [{ isOver, canDrop }, drop] = useDrop(
     () => ({
       accept: "piece",
-      canDrop: (piece) => canDropHandle(piece),
-      drop: dropHandle,
+      canDrop: (item) => canDropHandle(item.pieceMovedSquares),
+      drop: (item) => dropHandle(item.piece),
       collect: (monitor) => ({
         isOver: !!monitor.isOver(),
         canDrop: !!monitor.canDrop(),
       }),
     }),
-    [squares]
+    []
   );
 
   return (
@@ -124,9 +122,9 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
         } // Dark color if the sum of row and column numbers is odd
       )}
     >
-      {piece && <Piece piece={piece} />}
-      {/* Preview for drop area */}
-      {isOver && piece?.square !== squareCoord ? (
+      {piece ? (
+        <Piece piece={piece} />
+      ) : isOver ? (
         <div
           className={classNames(
             "w-1/2 h-1/2 rounded-full",
@@ -141,9 +139,8 @@ const Square = ({ square: { id: squareCoord, piece } }) => {
       ) : (
         canDrop && <div className="w-1/2 h-1/2 rounded-full bg-gray-400"></div>
       )}
-      {/* End preview */}
     </div>
   );
 };
 
-export default Square;
+export default memo(Square);

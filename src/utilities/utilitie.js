@@ -150,12 +150,9 @@ export const pieceMoveSquares = (selectedPiece) => {
   const rotations = getAcceptRottaionArray(selectedPiece);
 
   let lastSpaced; // son üsten atlama hamlesi yapılan coord
-  let lastIndex; // son üstten atlama hamlesi yapılan index
   rotations.forEach(({ coord, capture }, index) => {
     capture
-      ? (captureSpacedSquares.push(coord),
-        (lastSpaced = coord),
-        (lastIndex = index))
+      ? (captureSpacedSquares.push(coord), (lastSpaced = coord))
       : movedSquares.push(coord);
 
     // eğer hamle yapan taş dama taşıysa
@@ -172,7 +169,6 @@ export const pieceMoveSquares = (selectedPiece) => {
             // son atlanan kare artık bu kare
             lastSpaced = coord;
             // son atlanan kare indexi artık bu karenin indexi
-            lastIndex = index;
             // atlanabilir kare listesine ekle
             captureSpacedSquares.push(coord);
           }
@@ -236,7 +232,6 @@ export const captureRequirementPiecesCheck = () => {
   const turnColor = Store.getState().checkers.turnColor;
   const capturePieces = [];
   const ownPieceSquares = getOwnPiecesSquareFromObjectArray(turnColor); // aynı tipte taşları içeren tüm kareleri alır
-  // console.table(ownPieceSquares);
   ownPieceSquares.forEach(([, squareValue]) => {
     const forced = captureRequirementPieceCheck(squareValue.piece);
     forced && capturePieces.push(forced);

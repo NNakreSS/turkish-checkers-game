@@ -9,9 +9,12 @@ import { useSelector } from "react-redux";
 import { checkersSelector } from "../../redux/slices/checkersSlice";
 import { toast } from "react-toastify";
 import classNames from "classnames";
+import { memo } from "react";
+import { pieceMoveSquares } from "../../utilities/utilitie";
 
 const Piece = ({ piece }) => {
   const { forcedPieces, turnColor } = useSelector(checkersSelector);
+  const pieceMovedSquares = pieceMoveSquares(piece); // taşın hamle yapabileceği kareler
 
   const isCanDrag = (selectedPiece) => {
     // oynama sırası oynatılmaya çalışılan taşta mı diye kontrol et
@@ -49,7 +52,7 @@ const Piece = ({ piece }) => {
   const [{ opacity }, dragRef] = useDrag(
     () => ({
       type: "piece",
-      item: piece,
+      item: { piece, pieceMovedSquares },
       canDrag: () => isCanDrag(piece),
       collect: (monitor) => ({
         opacity: monitor.isDragging() ? 0.3 : 1,
@@ -81,4 +84,4 @@ const Piece = ({ piece }) => {
     </>
   );
 };
-export default Piece;
+export default memo(Piece);
