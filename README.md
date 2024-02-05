@@ -1,21 +1,28 @@
-# React + Vite / Turkish Checker Game (Türk Daması)
+# React + Vite / Türk Daması (Turkish Checker Game)
 
-[**Live Demo**](https://nnakress.github.io/turkish-checkers-game/)
+[**Canlı Demo / Live Demo**](https://nnakress.github.io/turkish-checkers-game/)
 
-## TR
- > Türk daması oyununu bir cihaz üzerinden 2 kişinin oynayabileceği bir uygulama
+## Türkçe
+ > Türk daması oyununu tek bir cihaz üzerinde 2 kişinin oynayabileceği bir uygulama.
 
-## EN
+## English
  > A two-player Turkish checkers game playable on a single device.
 
-> yarn
+## Başlangıç / Installation
 
-> yarn dev
+```
+yarn
 
-* React / Redux
-* Tailwind
-* react-toastify
+yarn dev
+```
 
-![image](https://github.com/NNakreSS/turkish-checkers-game/assets/87872407/ffbc5d35-7516-4d92-943f-982761bafd5e)
 
-![image](https://github.com/NNakreSS/turkish-checkers-game/assets/87872407/3b4630d5-ed83-4d27-89ee-6a6bed844834)
+## Kullanılan Teknolojiler / Used Technologies
+- React / Redux
+- Tailwind CSS
+- react-toastify
+
+## Ekran Görüntüleri / Screenshots
+![in game](https://github.com/NNakreSS/turkish-checkers-game/assets/87872407/ffbc5d35-7516-4d92-943f-982761bafd5e)
+
+![end game](https://github.com/NNakreSS/turkish-checkers-game/assets/87872407/3b4630d5-ed83-4d27-89ee-6a6bed844834)
